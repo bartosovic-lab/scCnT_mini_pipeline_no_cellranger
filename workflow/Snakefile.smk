@@ -175,8 +175,6 @@ rule cell_picking:
     shell:
         'Rscript {workflow.basedir}/scripts/pick_cells_light.R --metrics_all {input.metrics_all} --metrics_peak {input.metrics_peak} --out {output.metadata} --cells_list {output.cells}'
 
-    
-        
 
 
 

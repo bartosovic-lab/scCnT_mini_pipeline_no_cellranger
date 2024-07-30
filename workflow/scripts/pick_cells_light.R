@@ -189,6 +189,6 @@ write.csv(file=args$out,x=metrics.df)
 
 # Export the list of picked cells 
 write.table(file = args$cells_list, 
-            x = metrics.df$barcode[metrics.df$is_cell_knee & metrics.df$is_cell_kmeans], 
+            x = metrics.df$barcode[metrics.df$is_cell_knee || metrics.df$is_cell_kmeans], 
             row.names = FALSE, col.names = FALSE, 
             quote = FALSE)
