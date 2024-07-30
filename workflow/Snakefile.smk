@@ -8,6 +8,9 @@ rule main:
         expand("{out}/{sample}/peaks/macs2_narrow/{sample}_peaks.narrowPeak", out=config['general']['outdir'], sample=config['samples']),
         expand("{out}/{sample}/peaks/macs2_broad/{sample}_peaks.broadPeak", out=config['general']['outdir'], sample=config['samples']),
         expand("{out}/{sample}/metrics/{sample}_metadata.csv", out=config['general']['outdir'], sample=config['samples']),
+        expand("{out}/{sample}/matrix_peaks/", out=config['general']['outdir'], sample=config['samples']),
+        expand("{out}/{sample}/matrix_genomic_bins_{binsize}/", out=config['general']['outdir'], sample=config['samples'], binsize=config['general']['binsizes']),
+        expand("{out}/{sample}/matrix_GA/", out=config['general']['outdir'], sample=config['samples']),
 
 # Trim R1 and R3 reads
 rule trim_trim_galore:
@@ -176,8 +179,61 @@ rule cell_picking:
         'Rscript {workflow.basedir}/scripts/pick_cells_light.R --metrics_all {input.metrics_all} --metrics_peak {input.metrics_peak} --out {output.metadata} --cells_list {output.cells}'
 
 
+rule create_matrix_peaks:
+    input:
+        cells = "{out}/{sample}/metrics/{sample}_cells.txt",
+        fragments = "{out}/{sample}/mapping/{sample}_fragments.tsv.gz",
+        peaks = "{out}/{sample}/peaks/macs2_broad/{sample}_peaks.broadPeak"
+    output:
+        matrix = directory("{out}/{sample}/matrix_peaks/")
+    threads: 1
+    shell:
+        # Requires f2m in $PATH
+        # https://github.com/stuart-lab/f2m
+        "f2m --fragments {input.fragments} --bed {input.peaks} --cells {input.cells} --outdir {output.matrix}"
+
+rule generate_genomic_bins_annotation:
+    input:
+        genome = config['general']['chrom_sizes']
+    output:
+        bed = "{out}/genomic_bins_{binsize}.bed"
+    threads: 1
+    shell:
+        'bedtools makewindows -g {input.genome} -w {wildcards.binsize} > {output.bed}'
 
 
+rule create_matrix_genomic_bins:
+    input:
+        cells = "{out}/{sample}/metrics/{sample}_cells.txt",
+        fragments = "{out}/{sample}/mapping/{sample}_fragments.tsv.gz",
+        bins = "{out}/genomic_bins_{binsize}.bed"
+    output:
+        matrix = directory("{out}/{sample}/matrix_genomic_bins_{binsize}/")
+    threads: 1
+    shell:
+        # Requires f2m in $PATH
+        # https://github.com/stuart-lab/f2m
+        "f2m --fragments {input.fragments} --bed {input.bins} --cells {input.cells} --outdir {output.matrix}"
+
+
+rule download_GA_annotation:
+    output:
+        annotation = "{out}/GA_annotation.bed"
+    shell:
+        'Rscript {workflow.basedir}/scripts/get_genebody_and_promoter_coordinates.R --out {output.annotation}'
+
+rule create_matrix_GA:
+    input:
+        cells = "{out}/{sample}/metrics/{sample}_cells.txt",
+        fragments = "{out}/{sample}/mapping/{sample}_fragments.tsv.gz",
+        annotation = "{out}/GA_annotation.bed"
+    output:
+        matrix = directory("{out}/{sample}/matrix_GA/")
+    threads: 1
+    shell:
+        # Requires f2m in $PATH
+        # https://github.com/stuart-lab/f2m
+        "f2m --fragments {input.fragments} --bed {input.annotation} --cells {input.cells} --outdir {output.matrix}"
 
 
 

@@ -44,3 +44,5 @@ general:
   tempdir: /Users/marek/tmp
   outdir: /Users/marek/human/out
   bwa_index: /Users/marek/references/hg38/bwa/hg38.fa.gz
+  chrom_sizes: /Users/marek/references/hg38/fasta/hg38.chromSizes
+  binsizes: [5000,10000,25000]
