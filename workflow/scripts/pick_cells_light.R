@@ -15,8 +15,8 @@ parser$add_argument("--out", help="Output metadata table with picked cells", req
 parser$add_argument("--cells_list", help="Output file with cell barcodes of picked cells", required=TRUE)
 parser$add_argument("--kmeans", help="Number of clusters for kmeans", default=2)
 parser$add_argument("--knee_stdev", help="Number of standard deviations above the mean for knee detection", default=3, type='numeric')
-parser$add_argument("--skip_first", help="Number of cells with the highest numbers of reads to skip during sd thresholding [typically doublets/clumpts]", default=50, type='numeric')
-parser$add_argument("--minimum_cells", help="Minimum number of cells to pick", default=500, type='numeric')
+parser$add_argument("--skip_first", help="Number of cells with the highest numbers of reads to skip during sd thresholding [typically doublets/clumps]\n Can be eihter percentile [0-0.99] or absolute number [e.g. 500]", default=0.1, type='numeric')
+parser$add_argument("--minimum_cells", help="Minimum number of cells to pick", default=1000, type='numeric')
 args <- parser$parse_args()
 
 out_prefix <- dirname(args$out)
@@ -59,19 +59,28 @@ find_clusters_kmeans <- function(metrics.df, nclusters = 2){
 }
 
 find_clusters_knee_plot <- function(metrics.df, knee_stdev = 3){
-    # Calculate diff between ranked cells
     metrics.df               <- metrics.df[order(metrics.df$all_reads,decreasing = TRUE),]
-    reads.diff               <- -diff(metrics.df$log_all_reads)[-(1:args$skip_first)]
-    # Smoothen the diff to remove noise/outliers
-    reads.diff.smooth        <- runmed(reads.diff,k=101)    
+
+    if(args$skip_first < 1){
+        i.skip <- which(metrics.df$all_reads > quantile(metrics.df$all_reads,1-args$skip_first)) 
+    }
+    else{
+        i.skip <- 1:args$skip_first
+    }
+    
+    # Calculate diff between ranked cells and smoothen the diff to remove noise/outliers
+    reads.diff.smooth.full        <- runmed(-diff(metrics.df$log_all_reads),k=101)
+    reads.diff.smooth.truncated   <- runmed(-diff(metrics.df$log_all_reads[-i.skip]),k=101) # Truncated 
+ 
     # Find peaks in the smoothened diff plot
-    peaks <- which(reads.diff.smooth/sd(reads.diff.smooth) > args$knee_stdev)
+    peaks <- which(reads.diff.smooth.truncated/sd(reads.diff.smooth.truncated) > args$knee_stdev)
     peak_intervals = find_intervals_in_vector(peaks)
 
     
     if( is.null(nrow(peak_intervals)) ){
         warning('INFO: No knees found using the knee plot method. Consider increasing the stdev threshold for knee detection')
-        knee      = 0
+        warning('INFO: Manualy setting knee to 5000 cells')
+        knee      = 5000
         all_knees = knee
     }
     else if(nrow(peak_intervals) > 1){
@@ -81,17 +90,17 @@ find_clusters_knee_plot <- function(metrics.df, knee_stdev = 3){
     else if (nrow(peak_intervals) == 1){
         all_knees = peak_intervals$start
     }
-
-    all_knees = all_knees + args$skip_first # Adjust for skipped cells in sd calculation
-    all_knees = all_knees[all_knees > args$minimum_cells] # Remove knees below minimum cell threshold
-    knee      = all_knees[1]
+    all_knees = all_knees + max(c(0,i.skip))
+    knee      = all_knees[1]    
     
     # Take the first knee as the cutoff
     metrics.df$is_cell_knee = FALSE
     metrics.df$is_cell_knee[1:knee] = TRUE
     
     # Plot some QC
-    plot.df      <- data.frame(sd = reads.diff.smooth / sd(reads.diff.smooth), rank=1:length(reads.diff.smooth))
+    # Recalculate the diff and smoothened diff for plotting
+    
+    plot.df      <- data.frame(sd = reads.diff.smooth.full / sd(reads.diff.smooth.truncated), rank=1:length(reads.diff.smooth.full))
     p1 <- ggplot(data=plot.df) + 
       geom_point(aes(x=rank,y=sd)) + 
       geom_hline(yintercept = args$knee_stdev,color='red') + 
