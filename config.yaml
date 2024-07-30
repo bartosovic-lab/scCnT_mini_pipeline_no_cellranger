@@ -3,11 +3,42 @@ samples:
     R1_PATH: /Users/marek/human/P32269_1001/P32269_1001_R1_001.fastq.gz
     R2_PATH: /Users/marek/human/P32269_1001/P32269_1001_R2_001.fastq.gz
     R3_PATH: /Users/marek/human/P32269_1001/P32269_1001_R3_001.fastq.gz
-    I1_PATH: /Users/marek/human/P32269_1001/P32269_1001_I1_001.fastq.gz
     modality: H3K27ac
     age: w9.5
     region: cortex
     species: human
+    storage: fresh
+  
+  P32269_1002:
+    R1_PATH: /Users/marek/human/P32269_1002/P32269_1002_R1_001.fastq.gz
+    R2_PATH: /Users/marek/human/P32269_1002/P32269_1002_R2_001.fastq.gz
+    R3_PATH: /Users/marek/human/P32269_1002/P32269_1002_R3_001.fastq.gz
+    modality: H3K27ac
+    age: w9.5
+    region: cortex
+    species: human
+    storage: frozen
+
+  P32269_1003_ACTCCAGA:
+    R1_PATH: /Users/marek/human/P32269_1003/barcode_ATAGAGGC/P32269_1003_S3_L002_R1_001.fastq.gz
+    R2_PATH: /Users/marek/human/P32269_1003/barcode_ATAGAGGC/P32269_1003_S3_L002_R2_001.fastq.gz
+    R3_PATH: /Users/marek/human/P32269_1003/barcode_ATAGAGGC/P32269_1003_S3_L002_R3_001.fastq.gz
+    modality: H3K27ac
+    age: w11.5
+    region: cortex
+    species: human
+    storage: fresh
+
+  P32269_1004_ACTCCAGA:
+    R1_PATH: /Users/marek/human/P32269_1004/barcode_ATAGAGGC/P32269_1004_S4_L002_R1_001.fastq.gz
+    R2_PATH: /Users/marek/human/P32269_1004/barcode_ATAGAGGC/P32269_1004_S4_L002_R2_001.fastq.gz
+    R3_PATH: /Users/marek/human/P32269_1004/barcode_ATAGAGGC/P32269_1004_S4_L002_R3_001.fastq.gz
+    modality: H3K27ac
+    age: w5.5
+    region: whole_head
+    species: human
+    storage: fresh
+
 
 general:
   tempdir: /Users/marek/tmp
