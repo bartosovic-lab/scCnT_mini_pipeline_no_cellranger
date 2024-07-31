@@ -12,7 +12,11 @@ rule main:
         expand("{out}/{sample}/matrix_peaks/", out=config['general']['outdir'], sample=config['samples']),
         expand("{out}/{sample}/matrix_genomic_bins_{binsize}/", out=config['general']['outdir'], sample=config['samples'], binsize=config['general']['binsizes']),
         expand("{out}/{sample}/matrix_GA/", out=config['general']['outdir'], sample=config['samples']),
-        "{out}/merged_fragments.tsv.gz".format(out=config['general']['outdir'])
+        "{out}/merged/fragments.tsv.gz".format(out=config['general']['outdir']),
+        "{out}/merged/merged_matrix_peaks/".format(out=config['general']['outdir']),
+        expand("{out}/merged/merged_matrix_genomic_bins_{binsize}/", out=config['general']['outdir'], binsize=config['general']['binsizes']),
+        "{out}/merged/merged_matrix_GA/".format(out=config['general']['outdir']),
+        
 
 # Trim R1 and R3 reads
 rule trim_trim_galore:
@@ -252,12 +256,63 @@ rule merge_fragment_files:
     input:
         fragments = expand("{out}/{sample}/mapping/{sample}_mod_fragments.tsv.gz", out=config['general']['outdir'], sample=config['samples'])
     output:
-        fragments = "{out}/merged_fragments.tsv.gz"
+        fragments = "{out}/merged/fragments.tsv.gz"
+    threads: 4
     shell:
-        'gunzip -c {input.fragments} | sort -k1,1 -k4,4 > {output.fragments}_temp && '
-        'bgzip -@ 4 -c {output.fragments}_temp > {output.fragments} && '
+        'gunzip -c {input.fragments} | bedtools sort -i - > {output.fragments}_temp && '
+        'bgzip -@ {threads} -c {output.fragments}_temp > {output.fragments} && '
         'tabix -p bed {output.fragments} && '
         'rm {output.fragments}_temp'
 
+rule merge_cells:
+    input:
+        cells = expand("{out}/{sample}/metrics/{sample}_cells.txt", out=config['general']['outdir'], sample=config['samples'])
+    output:
+        cells = "{out}/merged/cells.txt"
+    threads: 1
+    shell:
+        'cat {input.cells} > {output.cells}'
 
+rule merge_peaks:
+    input:
+        peaks = expand("{out}/{sample}/peaks/macs2_broad/{sample}_peaks.broadPeak", out=config['general']['outdir'], sample=config['samples'])
+    output:
+        peaks = "{out}/merged/merged_peaks.broadPeak"
+    threads: 1
+    shell:
+        'cat {input.peaks} | bedtools sort -i - > {output.peaks}_temp && '
+        'bedtools merge -i {output.peaks}_temp > {output.peaks} && '
+        'rm {output.peaks}_temp'
 
+rule merged_peak_matrix:
+    input:
+        fragments = "{out}/merged/fragments.tsv.gz",
+        peaks = "{out}/merged/merged_peaks.broadPeak",
+        cells = "{out}/merged/cells.txt"
+    output:
+        matrix = directory("{out}/merged/merged_matrix_peaks/")
+    threads: 1
+    shell:
+        'f2m --fragments {input.fragments} --bed {input.peaks} --cells {input.cells} --outdir {output.matrix}'
+
+rule merged_bin_matrix:
+    input:
+        fragments = "{out}/merged/fragments.tsv.gz",
+        bins = "{out}/genomic_bins_{binsize}.bed",
+        cells = "{out}/merged/cells.txt"
+    output:
+        matrix = directory("{out}/merged/merged_matrix_genomic_bins_{binsize}/")
+    threads: 1
+    shell:
+        'f2m --fragments {input.fragments} --bed {input.bins} --cells {input.cells} --outdir {output.matrix}'
+
+rule merged_GA_matrix:
+    input:
+        fragments = "{out}/merged/fragments.tsv.gz",
+        annotation = "{out}/GA_annotation.bed",
+        cells = "{out}/merged/cells.txt"
+    output:
+        matrix = directory("{out}/merged/merged_matrix_GA/")
+    threads: 1
+    shell:
+        'f2m --fragments {input.fragments} --bed {input.annotation} --cells {input.cells} --outdir {output.matrix}'
