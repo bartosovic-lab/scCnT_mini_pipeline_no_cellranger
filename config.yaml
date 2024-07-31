@@ -38,6 +38,16 @@ samples:
     region: whole_head
     species: human
     storage: fresh
+    
+  P32010_1001:
+    R1_PATH: /Users/marek/human/P32010_1001/P32010_1001_R1_001.fastq.gz
+    R2_PATH: /Users/marek/human/P32010_1001/P32010_1001_R2_001.fastq.gz
+    R3_PATH: /Users/marek/human/P32010_1001/P32010_1001_R3_001.fastq.gz
+    modality: H3K27ac
+    age: w9.5
+    region: cortex
+    species: human
+    storage: fresh
 
 
 general:

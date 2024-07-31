@@ -196,7 +196,7 @@ rule generate_genomic_bins_annotation:
     input:
         genome = config['general']['chrom_sizes']
     output:
-        bed = "{out}/genomic_bins_{binsize}.bed"
+        bed = temp("{out}/genomic_bins_{binsize}.bed")
     threads: 1
     shell:
         'bedtools makewindows -g {input.genome} -w {wildcards.binsize} > {output.bed}'
