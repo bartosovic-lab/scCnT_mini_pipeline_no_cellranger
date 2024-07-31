@@ -4,6 +4,7 @@ rule main:
     input:
         expand("{out}/{sample}/mapping/{sample}_possorted.bam", out=config['general']['outdir'], sample=config['samples']),
         expand("{out}/{sample}/mapping/{sample}_fragments.tsv.gz", out=config['general']['outdir'], sample=config['samples']),
+        expand("{out}/{sample}/mapping/{sample}_mod_fragments.tsv.gz", out=config['general']['outdir'], sample=config['samples']),
         expand("{out}/{sample}/mapping/{sample}.bw", out=config['general']['outdir'], sample=config['samples']),
         expand("{out}/{sample}/peaks/macs2_narrow/{sample}_peaks.narrowPeak", out=config['general']['outdir'], sample=config['samples']),
         expand("{out}/{sample}/peaks/macs2_broad/{sample}_peaks.broadPeak", out=config['general']['outdir'], sample=config['samples']),
@@ -105,6 +106,17 @@ rule bam_to_fragments:
         'bgzip -@ {threads} -c {output.fragments}_sorted_temp > {output.fragments} && '
         'tabix -p bed {output.fragments} && '
         'rm {output.fragments}_temp {output.fragments}_sorted_temp'
+    
+rule fragments_with_sample_id: 
+    input:
+        fragments = "{out}/{sample}/mapping/{sample}_fragments.tsv.gz"
+    output:
+        fragments = "{out}/{sample}/mapping/{sample}_mod_fragments.tsv.gz"
+    params:
+        script = workflow.basedir + "/scripts/add_sample_name_to_cell_barcode.py"
+    threads: 4
+    shell:
+        'python3 {params.script} --fragments {input.fragments} --out {output.fragments} --sample {wildcards.sample} --threads {threads}'
 
 rule bam_to_bw:
     input:
