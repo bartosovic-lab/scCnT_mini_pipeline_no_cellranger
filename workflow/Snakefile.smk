@@ -12,6 +12,7 @@ rule main:
         expand("{out}/{sample}/matrix_peaks/", out=config['general']['outdir'], sample=config['samples']),
         expand("{out}/{sample}/matrix_genomic_bins_{binsize}/", out=config['general']['outdir'], sample=config['samples'], binsize=config['general']['binsizes']),
         expand("{out}/{sample}/matrix_GA/", out=config['general']['outdir'], sample=config['samples']),
+        "{out}/merged_fragments.tsv.gz".format(out=config['general']['outdir'])
 
 # Trim R1 and R3 reads
 rule trim_trim_galore:
@@ -247,7 +248,16 @@ rule create_matrix_GA:
         # https://github.com/stuart-lab/f2m
         "f2m --fragments {input.fragments} --bed {input.annotation} --cells {input.cells} --outdir {output.matrix}"
 
-
+rule merge_fragment_files:
+    input:
+        fragments = expand("{out}/{sample}/mapping/{sample}_mod_fragments.tsv.gz", out=config['general']['outdir'], sample=config['samples'])
+    output:
+        fragments = "{out}/merged_fragments.tsv.gz"
+    shell:
+        'gunzip -c {input.fragments} | sort -k1,1 -k4,4 > {output.fragments}_temp && '
+        'bgzip -@ 4 -c {output.fragments}_temp > {output.fragments} && '
+        'tabix -p bed {output.fragments} && '
+        'rm {output.fragments}_temp'
 
 
 
