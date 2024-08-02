@@ -123,6 +123,15 @@ rule fragments_with_sample_id:
     shell:
         'python3 {params.script} --fragments {input.fragments} --out {output.fragments} --sample {wildcards.sample} --threads {threads}'
 
+rule cells_with_sample_id:
+    input:
+        cells = "{out}/{sample}/metrics/{sample}_cells.txt"
+    output:
+        cells = "{out}/{sample}/metrics/{sample}_mod_cells.txt"
+    threads: 1
+    shell:
+        """awk -v sample={wildcards.sample} '{{print $0"_"sample}}' {input.cells} > {output.cells}"""
+
 rule bam_to_bw:
     input:
         bam = "{out}/{sample}/mapping/{sample}_possorted.bam",
@@ -266,7 +275,7 @@ rule merge_fragment_files:
 
 rule merge_cells:
     input:
-        cells = expand("{out}/{sample}/metrics/{sample}_cells.txt", out=config['general']['outdir'], sample=config['samples'])
+        cells = expand("{out}/{sample}/metrics/{sample}_mod_cells.txt", out=config['general']['outdir'], sample=config['samples'])
     output:
         cells = "{out}/merged/cells.txt"
     threads: 1
@@ -277,7 +286,7 @@ rule merge_peaks:
     input:
         peaks = expand("{out}/{sample}/peaks/macs2_broad/{sample}_peaks.broadPeak", out=config['general']['outdir'], sample=config['samples'])
     output:
-        peaks = "{out}/merged/merged_peaks.broadPeak"
+        peaks = "{out}/merged/peaks.broadPeak"
     threads: 1
     shell:
         'cat {input.peaks} | bedtools sort -i - > {output.peaks}_temp && '
@@ -287,7 +296,7 @@ rule merge_peaks:
 rule merged_peak_matrix:
     input:
         fragments = "{out}/merged/fragments.tsv.gz",
-        peaks = "{out}/merged/merged_peaks.broadPeak",
+        peaks = "{out}/merged/peaks.broadPeak",
         cells = "{out}/merged/cells.txt"
     output:
         matrix = directory("{out}/merged/merged_matrix_peaks/")

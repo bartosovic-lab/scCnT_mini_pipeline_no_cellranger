@@ -19,7 +19,7 @@ samples:
     species: human
     storage: frozen
 
-  P32269_1003_ACTCCAGA:
+  P32269_1003_ACTCCAGA: # after demultiplexing the barcodes using demultiplex.py - read lengths are 36-48-8-36
     R1_PATH: /Users/marek/human/P32269_1003/barcode_ATAGAGGC/P32269_1003_S3_L002_R1_001.fastq.gz
     R2_PATH: /Users/marek/human/P32269_1003/barcode_ATAGAGGC/P32269_1003_S3_L002_R2_001.fastq.gz
     R3_PATH: /Users/marek/human/P32269_1003/barcode_ATAGAGGC/P32269_1003_S3_L002_R3_001.fastq.gz
@@ -29,7 +29,7 @@ samples:
     species: human
     storage: fresh
 
-  P32269_1004_ACTCCAGA:
+  P32269_1004_ACTCCAGA: # after demultiplexing the barcodes using demultiplex.py - read lengths are 36-48-8-36
     R1_PATH: /Users/marek/human/P32269_1004/barcode_ATAGAGGC/P32269_1004_S4_L002_R1_001.fastq.gz
     R2_PATH: /Users/marek/human/P32269_1004/barcode_ATAGAGGC/P32269_1004_S4_L002_R2_001.fastq.gz
     R3_PATH: /Users/marek/human/P32269_1004/barcode_ATAGAGGC/P32269_1004_S4_L002_R3_001.fastq.gz
@@ -39,7 +39,7 @@ samples:
     species: human
     storage: fresh
     
-  # P32010_1001:
+  # P32010_1001: # TODO
   #   R1_PATH: /Users/marek/human/P32010_1001/P32010_1001_R1_001.fastq.gz
   #   R2_PATH: /Users/marek/human/P32010_1001/P32010_1001_R2_001.fastq.gz
   #   R3_PATH: /Users/marek/human/P32010_1001/P32010_1001_R3_001.fastq.gz
