@@ -3,6 +3,7 @@
 ### 1. Adjust the paths in config.yaml to your fastq files
 
 R3 fastq files should be 16bp == single-cell barcode (either single-modality data or multimodal data after demultiplexing)
+
 R1 and R2 read lenghts can be variable (36bp or 50bp)
 
 ### 2. Install dependencies (conda environment or other)
@@ -25,3 +26,6 @@ R
 f2m #https://github.com/stuart-lab/f2m
 Python and R packages (TODO)
 ```
+
+### 4. Pipeline flowchart
+![plot](./Resources/pipeline.png)
